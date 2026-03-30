@@ -26,7 +26,7 @@
 ; - 离开指定窗口时，删除 window_disable.flag
 ; - 依赖主程序中的 window-disable hook
 
-global IT_DISABLE_EXE := "mstsc.exe"
+global IT_DISABLE_EXE_LIST := ["mstsc.exe", "ToDesk.exe"]
 global IT_DISABLE_TITLE_REGEX := ""
 global IT_DISABLE_CHECK_MS := 300
 global IT_DISABLE_FLAG := A_ScriptDir "\plugins\window_disable.flag"
@@ -37,7 +37,7 @@ SetTimer(__InputTip_WindowDisableWatcher, IT_DISABLE_CHECK_MS)
 OnExit(__InputTip_CleanupDisableFlag)
 
 __InputTip_WindowDisableWatcher() {
-    global IT_DISABLE_EXE
+    global IT_DISABLE_EXE_LIST
     global IT_DISABLE_TITLE_REGEX
     global IT_DISABLE_FLAG
     global __it_last_disabled
@@ -59,7 +59,7 @@ __InputTip_WindowDisableWatcher() {
         title := ""
 
     matched := false
-    if (StrLower(exe) = StrLower(IT_DISABLE_EXE)) {
+    if (__InputTip_IsTargetDisableExe(exe)) {
         if (IT_DISABLE_TITLE_REGEX = "") {
             matched := true
         } else {
@@ -77,6 +77,18 @@ __InputTip_WindowDisableWatcher() {
     }
 
     __it_last_disabled := matched
+}
+
+__InputTip_IsTargetDisableExe(exe) {
+    global IT_DISABLE_EXE_LIST
+
+    exe := StrLower(exe)
+    for targetExe in IT_DISABLE_EXE_LIST {
+        if (exe = StrLower(targetExe)) {
+            return true
+        }
+    }
+    return false
 }
 
 __InputTip_CleanupDisableFlag(*) {
