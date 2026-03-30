@@ -20,3 +20,69 @@
     - Gitee: https://gitee.com/abgox/InputTip#自定义功能
 
 */
+
+; CapsLock:
+; - 单击: 切到英文
+; - 双击: 切到中文
+; - 长按: 执行原来的 CapsLock 切换
+
+global IT_CAPS_HOLD_MS := 300
+global IT_CAPS_DOUBLE_MS := 250
+
+global __it_caps_wait_second := false
+
+$*CapsLock::
+{
+    global IT_CAPS_HOLD_MS
+    global IT_CAPS_DOUBLE_MS
+    global __it_caps_wait_second
+
+    downTick := A_TickCount
+    KeyWait("CapsLock")
+    holdMs := A_TickCount - downTick
+
+    if (holdMs >= IT_CAPS_HOLD_MS) {
+        __it_caps_wait_second := false
+        SetTimer(__it_caps_single_tap_commit, 0)
+        SetCapsLockState(GetKeyState("CapsLock", "T") ? "Off" : "On")
+        return
+    }
+
+    if (__it_caps_is_window_disabled()) {
+        return
+    }
+
+    if (__it_caps_wait_second) {
+        __it_caps_wait_second := false
+        SetTimer(__it_caps_single_tap_commit, 0)
+        switch_CN()
+        return
+    }
+
+    __it_caps_wait_second := true
+    SetTimer(__it_caps_single_tap_commit, -IT_CAPS_DOUBLE_MS)
+}
+
+__it_caps_single_tap_commit() {
+    global __it_caps_wait_second
+
+    if (!__it_caps_wait_second) {
+        return
+    }
+
+    __it_caps_wait_second := false
+
+    if (__it_caps_is_window_disabled()) {
+        return
+    }
+
+    switch_EN()
+}
+
+__it_caps_is_window_disabled() {
+    try {
+        return __InputTip_IsWindowDisabled()
+    } catch {
+        return 0
+    }
+}
