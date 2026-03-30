@@ -21,6 +21,69 @@
 
 */
 
+; Window disable:
+; - 当前焦点命中指定窗口时，创建 window_disable.flag
+; - 离开指定窗口时，删除 window_disable.flag
+; - 依赖主程序中的 window-disable hook
+
+global IT_DISABLE_EXE := "mstsc.exe"
+global IT_DISABLE_TITLE_REGEX := ""
+global IT_DISABLE_CHECK_MS := 300
+global IT_DISABLE_FLAG := A_ScriptDir "\plugins\window_disable.flag"
+
+global __it_last_disabled := false
+
+SetTimer(__InputTip_WindowDisableWatcher, IT_DISABLE_CHECK_MS)
+OnExit(__InputTip_CleanupDisableFlag)
+
+__InputTip_WindowDisableWatcher() {
+    global IT_DISABLE_EXE
+    global IT_DISABLE_TITLE_REGEX
+    global IT_DISABLE_FLAG
+    global __it_last_disabled
+
+    hwnd := WinExist("A")
+    if !hwnd {
+        return
+    }
+
+    exe := ""
+    title := ""
+
+    try exe := WinGetProcessName(hwnd)
+    catch
+        return
+
+    try title := WinGetTitle(hwnd)
+    catch
+        title := ""
+
+    matched := false
+    if (StrLower(exe) = StrLower(IT_DISABLE_EXE)) {
+        if (IT_DISABLE_TITLE_REGEX = "") {
+            matched := true
+        } else {
+            matched := !!RegExMatch(title, IT_DISABLE_TITLE_REGEX)
+        }
+    }
+
+    if (matched = __it_last_disabled) {
+        return
+    }
+
+    try FileDelete(IT_DISABLE_FLAG)
+    if (matched) {
+        FileAppend("1", IT_DISABLE_FLAG, "UTF-8")
+    }
+
+    __it_last_disabled := matched
+}
+
+__InputTip_CleanupDisableFlag(*) {
+    global IT_DISABLE_FLAG
+    try FileDelete(IT_DISABLE_FLAG)
+}
+
 ; CapsLock:
 ; - 单击: 切到英文
 ; - 双击: 切到中文
