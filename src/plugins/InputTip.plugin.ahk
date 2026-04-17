@@ -96,25 +96,56 @@ __InputTip_CleanupDisableFlag(*) {
     try FileDelete(IT_DISABLE_FLAG)
 }
 
+
 ; CapsLock:
 ; - 单击: 切到英文
 ; - 双击: 切到中文
 ; - 长按: 执行原来的 CapsLock 切换
+; - 组合键:
+;   - CapsLock + e/k: 上
+;   - CapsLock + d/j: 下
+;   - CapsLock + s/h: 左
+;   - CapsLock + f/l: 右
+;   - CapsLock + p: Home
+;   - CapsLock + ;: End
+;   - CapsLock + w: Ctrl + Left
+;   - CapsLock + r: Ctrl + Right
 
 global IT_CAPS_HOLD_MS := 300
 global IT_CAPS_DOUBLE_MS := 250
 
 global __it_caps_wait_second := false
+global __it_caps_down_tick := 0
+global __it_caps_used_combo := false
 
 $*CapsLock::
+{
+    global __it_caps_down_tick
+    global __it_caps_used_combo
+
+    __it_caps_down_tick := A_TickCount
+    __it_caps_used_combo := false
+}
+
+$*CapsLock Up::
 {
     global IT_CAPS_HOLD_MS
     global IT_CAPS_DOUBLE_MS
     global __it_caps_wait_second
+    global __it_caps_down_tick
+    global __it_caps_used_combo
 
-    downTick := A_TickCount
-    KeyWait("CapsLock")
-    holdMs := A_TickCount - downTick
+    if (!__it_caps_down_tick) {
+        return
+    }
+
+    holdMs := A_TickCount - __it_caps_down_tick
+    __it_caps_down_tick := 0
+
+    if (__it_caps_used_combo) {
+        __it_caps_used_combo := false
+        return
+    }
 
     if (holdMs >= IT_CAPS_HOLD_MS) {
         __it_caps_wait_second := false
@@ -136,6 +167,75 @@ $*CapsLock::
 
     __it_caps_wait_second := true
     SetTimer(__it_caps_single_tap_commit, -IT_CAPS_DOUBLE_MS)
+}
+
+#HotIf GetKeyState("CapsLock", "P")
+$*e::
+{
+    __it_caps_send_key("{Up}")
+}
+
+$*d::
+{
+    __it_caps_send_key("{Down}")
+}
+
+$*s::
+{
+    __it_caps_send_key("{Left}")
+}
+
+$*f::
+{
+    __it_caps_send_key("{Right}")
+}
+
+$*k::
+{
+    __it_caps_send_key("{Up}")
+}
+
+$*j::
+{
+    __it_caps_send_key("{Down}")
+}
+
+$*h::
+{
+    __it_caps_send_key("{Left}")
+}
+
+$*l::
+{
+    __it_caps_send_key("{Right}")
+}
+
+$*p::
+{
+    __it_caps_send_key("{Home}")
+}
+
+$*vkBA::
+{
+    __it_caps_send_key("{End}")
+}
+
+$*w::
+{
+    __it_caps_send_key("^{Left}")
+}
+
+$*r::
+{
+    __it_caps_send_key("^{Right}")
+}
+#HotIf
+
+__it_caps_send_key(keyName) {
+    global __it_caps_used_combo
+
+    __it_caps_used_combo := true
+    SendInput("{Blind}" keyName)
 }
 
 __it_caps_single_tap_commit() {
