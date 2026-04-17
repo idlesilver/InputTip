@@ -48,6 +48,7 @@
     - 折中方案: `在鼠标附近显示符号`
   - 切换不同窗口时，自动切换到指定的输入法状态(支持 `进程级` 和 `标题级` 窗口匹配)
   - 设置按键切换到指定的输入法状态，参考 [状态切换](#关于状态切换)
+  - 基于 [状态导出](#状态导出) 实现扩展集成 (如: [InputTip for VSCode](https://inputtip.abgox.com/faq/inputtip-for-vscode))
   - 详细便捷的配置菜单
     - 所有的配置变动，都只应该在 `托盘菜单` 中进行
     - 它会校验配置的值，以确保能够正常运行
@@ -204,7 +205,9 @@
   - 这些数据文件或文件夹会保存在 `$env:LocalAppData\Microsoft\WinGet\Packages\abgox.InputTip_Microsoft.Winget.Source_8wekyb3d8bbwe` 中
   - 可以正常通过 [WinGet](https://learn.microsoft.com/windows/package-manager/winget/) 更新、卸载，不会删除这些数据文件和文件夹
 
-## 自定义功能
+## 扩展集成
+
+### 自定义功能
 
 > [!Caution]
 >
@@ -220,6 +223,33 @@
   - 在 `plugins` 目录中的文件不会因为版本更新而被覆盖
   - 如果你使用 Scoop 安装 [abyss](https://abyss.abgox.com) 中的 `abgox.InputTip-zip`，`plugins` 目录会被 `persist`
   - 因此，也可以通过 Scoop 更新，而不会覆盖 `plugins` 目录中的文件
+
+### 状态导出
+
+> [!Tip]
+>
+> - InputTip 支持将当前识别的输入法状态实时写入一个状态文件
+> - 你可以通过读取该文件以实现基于输入法状态的其他功能
+
+- 启用开关：`托盘菜单` => `输入法相关` => `是否将输入法状态导出`
+- 状态文件：`%TEMP%\abgox.InputTip.State`
+- 文件编码：`UTF-8`
+- 取值范围：`CN` (中文), `EN` (英文), `Caps` (大写锁定)
+
+### 扩展工具
+
+> [!Note]
+>
+> 对于来自社区的工具，其可用性与安全性与 InputTip 无关，请自行评估
+
+<!-- prettier-ignore-start -->
+
+|工具|来源|描述|链接|
+|-|-|-|-|
+|[InputTip for VSCode](https://inputtip.abgox.com/faq/inputtip-for-vscode)|`官方`|一个 vscode 插件，实时修改光标、边框等颜色以提示输入法状态|[Github](https://github.com/abgox/InputTip-for-VSCode), [VSCode 插件市场](https://marketplace.visualstudio.com/items?itemName=abgox.inputtip)|
+|...|...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|...|...|
+
+<!-- prettier-ignore-end -->
 
 ## 关于状态提示方案
 

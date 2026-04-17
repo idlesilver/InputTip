@@ -28,8 +28,6 @@ gc := {
     }
 }
 
-userName := readIni("userName", A_UserName, "UserInfo")
-
 ; 输入法模式
 mode := readIni("mode", 1, "InputMethod")
 
@@ -93,6 +91,11 @@ symbolShowMode := readIni("symbolShowMode", 1)
 
 ; 是否保持大写锁定状态
 keepCapsLock := readIni("keepCapsLock", 0)
+
+; 是否将输入法状态导出
+exportState := readIni("exportState", 0)
+
+exportStateFile := A_Temp "\abgox.InputTip.State"
 
 ; 轮询响应间隔
 delay := readIni("delay", 20)
@@ -226,6 +229,7 @@ for v in cursorInfo {
     }
 }
 
+app_IgnoreHotKey := StrSplit(readIniSection("App-IgnoreHotKey"), "`n")
 app_HideSymbol := StrSplit(readIniSection("App-HideSymbol"), "`n")
 app_ShowSymbol := StrSplit(readIniSection("App-ShowSymbol"), "`n")
 app_AutoExit := StrSplit(readIniSection("App-Auto-Exit"), "`n")
@@ -801,31 +805,37 @@ killJAB(wait := 1, delete := 0) {
  */
 createScheduleTask(path, taskName, args := [], runLevel := "Highest", isWait := 0, needStartUp := 0, *) {
     if (A_IsAdmin) {
-        cmd := '-NoProfile -Command $action = New-ScheduledTaskAction -Execute "`'\"' path '\"`'" '
+        cmd := '$action = New-ScheduledTaskAction -Execute "' path '" '
         if (args.Length) {
-            cmd .= '-Argument ' "'"
+            cmd .= "-Argument '"
             for v in args {
-                cmd .= '\"' v '\" '
+                cmd .= '"' v '" '
             }
             cmd .= "'"
         }
-        cmd .= ';$principal = New-ScheduledTaskPrincipal -UserId "' userName '" -RunLevel ' runLevel ';$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -DontStopOnIdleEnd -ExecutionTimeLimit 10 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1);'
+        cmd .= '`n$principal = New-ScheduledTaskPrincipal -GroupId BUILTIN\Users -RunLevel ' runLevel '`n$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -DontStopOnIdleEnd -ExecutionTimeLimit 10 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)`n'
         if (needStartUp) {
-            cmd .= '$trigger = New-ScheduledTaskTrigger -AtLogOn;$task = New-ScheduledTask -Action $action -Principal $principal -Settings $settings -Trigger $trigger;'
+            cmd .= '$trigger = New-ScheduledTaskTrigger -AtLogOn`n$task = New-ScheduledTask -Action $action -Principal $principal -Settings $settings -Trigger $trigger'
         } else {
-            cmd .= '$task = New-ScheduledTask -Action $action -Principal $principal -Settings $settings;'
+            cmd .= '$task = New-ScheduledTask -Action $action -Principal $principal -Settings $settings'
         }
-        cmd .= 'Register-ScheduledTask -TaskName ' taskName ' -InputObject $task -Force;'
-        try {
-            isWait ? RunWait('powershell ' cmd, , "Hide") : Run('powershell ' cmd, , "Hide")
-            return 1
-        } catch {
+        cmd .= '`nRegister-ScheduledTask -TaskName "' taskName '" -InputObject $task -Force'
+
+        ps1_path := A_Temp "\abgox.InputTip.createScheduleTask.ps1"
+
+        if (FileExist(ps1_path)) {
             try {
-                isWait ? RunWait('pwsh ' cmd, , "Hide") : Run('pwsh ' cmd, , "Hide")
-                return 1
+                FileDelete(ps1_path)
             } catch {
                 return 0
             }
+        }
+
+        try {
+            FileAppend(cmd, ps1_path)
+            c := 'powershell -NoProfile -ExecutionPolicy Bypass -File "' ps1_path '"'
+            isWait ? RunWait(c, , "Hide") : Run(c, , "Hide")
+            return 1
         }
     }
     return 0

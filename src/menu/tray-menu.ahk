@@ -3,6 +3,7 @@
 #Include "*i startup.ahk"
 #Include "*i check-update.ahk"
 #Include "*i input-method.ahk"
+#Include "*i ignore-hotkey.ahk"
 #Include "*i cursor-mode.ahk"
 #Include "*i bw-list.ahk"
 #Include "*i symbol-pos.ahk"
@@ -138,61 +139,6 @@ fn_create_shortcut(*) {
     }
 }
 
-fn_update_user(uname, *) {
-    global userName := uname
-    createUniqueGui(updateUserGui).Show()
-    updateUserGui(info) {
-        g := createGuiOpt("InputTip - 设置用户名")
-        tab := g.AddTab3("-Wrap", ["设置用户名", "关于"])
-        tab.UseTab(1)
-        g.AddText("Section cRed", gui_help_tip)
-
-        if (info.i) {
-            return g
-        }
-        w := info.w
-        bw := w - g.MarginX * 2
-
-        g.AddText(, "-------------------------------------------------------------------------")
-
-        g.AddText(, "当前的用户名: ")
-        _ := g.AddEdit("yp")
-        _._config := "userName"
-        _.Value := uname
-        _.OnEvent("Change", fn_change)
-        fn_change(item, *) {
-            global userName := item.value
-        }
-
-        g.AddText("xs ReadOnly cGray", "请自行检查，确保用户名无误后，点击右上角的 × 直接关闭此窗口即可").Focus()
-
-        tab.UseTab(2)
-        g.AddEdit("ReadOnly r6 w" bw, "1. 简要说明`n   - 这个菜单用来设置用户名信息`n   - 如果是域用户，在填写时还需要添加域，参考以下格式`n      - DOMAIN\Username`n      - Username@domain.com`n   - 如果用户名信息有误，以下功能可能会失效`n      - 【开机自启动】中的 【任务计划程序】`n      - 【其他设置】中的【JAB/JetBrains IDE 支持】")
-
-        g.OnEvent("Close", e_close)
-        e_close(*) {
-            writeIni("userName", userName, "UserInfo")
-            if (A_IsAdmin) {
-                if (A_IsCompiled) {
-                    if (isStartUp = 1) {
-                        createScheduleTask(A_ScriptFullPath, "abgox.InputTip.noUAC", [0], , , 1)
-                    }
-                    if (enableJABSupport) {
-                        createScheduleTask(A_ScriptDir "\InputTip.JAB.JetBrains.exe", "abgox.InputTip.JAB.JetBrains", , "Limited")
-                    }
-                } else {
-                    if (isStartUp = 1) {
-                        createScheduleTask(A_AhkPath, "abgox.InputTip.noUAC", [A_ScriptFullPath, 0], , , 1)
-                    }
-                    if (enableJABSupport) {
-                        createScheduleTask(A_AhkPath, "abgox.InputTip.JAB.JetBrains", [A_ScriptDir "\InputTip.JAB.JetBrains.ahk"], "Limited")
-                    }
-                }
-            }
-        }
-        return g
-    }
-}
 fn_process_info(*) {
     createUniqueGui(processInfoGui).Show()
     processInfoGui(info) {

@@ -10,6 +10,8 @@ lastInputState := ""
 inputStateChanged := 0
 lastWindowDisabled := 0
 
+lastExportState := ""
+
 loop {
     Sleep(delay)
     ; 正在使用鼠标或有键盘操作
@@ -110,6 +112,15 @@ loop {
             lastInputState := currentState
             if (inputStateChanged || GetKeyState("LButton", "P")) {
                 ShowSymbolEx(currentState)
+            }
+        }
+
+        if (exportState) {
+            if (currentState != lastExportState) {
+                f := FileOpen(exportStateFile, "w", "UTF-8-RAW")
+                f.Write(currentState)
+                f.Close()
+                lastExportState := currentState
             }
         }
     }

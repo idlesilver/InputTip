@@ -20,7 +20,7 @@ fn_ohter_config(*) {
         g.AddButton("xs w" bw / 2, "更新检查").OnEvent("Click", fn_check_update)
         g.AddButton("yp w" bw / 2, "指定窗口自动退出").OnEvent("Click", fn_auto_exit)
         g.AddButton("xs w" bw / 2, "打开软件目录").OnEvent("Click", (*) => (Run("explorer.exe /select," A_ScriptFullPath)))
-        g.AddButton("yp w" bw / 2, "设置用户名").OnEvent("Click", (*) => (fn_update_user(userName)))
+        g.AddButton("yp w" bw / 2, "指定窗口忽略状态切换快捷键").OnEvent("Click", fn_ignore_hotkey)
         g.AddButton("xs w" bw / 2, "暂停/运行快捷键").OnEvent("Click", (*) => (
             setHotKeyGui([{
                 config: "hotkey_Pause",

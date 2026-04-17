@@ -41,8 +41,6 @@ if (A_IsCompiled) {
     }
 }
 
-checkUpdateDone()
-
 checkIni()
 
 checkUpdate(1)
@@ -400,7 +398,7 @@ GetCaretPosEx(&left?, &top?, &right?, &bottom?) {
                 }
             }
             return false
-getRangeInfo:
+            getRangeInfo:
             psa := 0
             ; This is a degenerate text range, we have to expand it.
             ComCall(6, range, "int", 0) ; range->ExpandToEnclosingUnit(TextUnit_Character);
@@ -426,7 +424,7 @@ getRangeInfo:
                 }
             }
             return false
-end:
+            end:
             left := Round(rects[0])
             top := Round(rects[1])
             right := left + Round(rects[2])

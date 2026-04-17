@@ -37,17 +37,17 @@ WM_MOUSEWHEEL_Handler(wParam, lParam, msg, hwnd) {
 
 OnMessage(0x20E, (*) => 0) ; 0x20E = WM_MOUSEHWHEEL
 
-;@AHK2Exe-SetVersion 2026.01.01
+;@AHK2Exe-SetVersion 2026.04.14
 
 if (A_IsCompiled) {
     ; exe 版本
-    currentVersion := "2026.01.01"
+    currentVersion := "2026.04.14"
 
     versionType := "exe"
     versionKey := "version"
 } else {
     ; zip 版本
-    currentVersion := "2026.01.01"
+    currentVersion := "2026.04.14"
 
     versionType := "zip"
     versionKey := "version-zip"

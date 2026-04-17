@@ -72,7 +72,6 @@ fn_startup(item, *) {
                 }
 
                 if (done) {
-                    fn_update_user(A_UserName)
                     isStartUp := 1
                     ; FileCreateShortcut("C:\WINDOWS\system32\schtasks.exe", A_Startup "\" fileLnk, , "/run /tn `"abgox.InputTip.noUAC`"", fileDesc, favicon, , , 7)
                     fn_handle()

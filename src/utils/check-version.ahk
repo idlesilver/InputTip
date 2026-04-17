@@ -367,7 +367,6 @@ ignoreUpdateTip() {
 
 ; 下载最新的源代码文件
 getRepoCode(newVersion, silent := silentUpdate) {
-    done := 1
     ; 是否成功下载 files.ini
     downloadIni := 0
 
@@ -424,6 +423,7 @@ getRepoCode(newVersion, silent := silentUpdate) {
             doneFileList := []
             fileCount := files.Length
             for i, kv in files {
+                done := 0
                 p := StrSplit(kv, "=")
                 for u in baseUrl {
                     tip.Text := i '/' fileCount " : " p[1]
@@ -440,25 +440,20 @@ getRepoCode(newVersion, silent := silentUpdate) {
                             }
                         }
                         Download(u p[1], out)
-                        break
-                    }
-                }
-                if (FileExist(out)) {
-                    doneFileList.Push(out)
-                    if (InStr(out, ".ahk")) {
-                        try {
-                            if (!InStr(FileOpen(out, "r").ReadLine(), "InputTip")) {
-                                done := 0
+                        if (FileExist(out)) {
+                            if (InStr(out, ".ahk")) {
+                                try {
+                                    done := InStr(FileOpen(out, "r").ReadLine(), "InputTip")
+                                }
+                            } else {
+                                done := 1
+                            }
+                            if (done) {
+                                doneFileList.Push(out)
                                 break
                             }
-                        } catch {
-                            done := 0
-                            break
                         }
                     }
-                } else {
-                    done := 0
-                    break
                 }
             }
 
@@ -531,10 +526,17 @@ getRepoCode(newVersion, silent := silentUpdate) {
  * 当更新完成时弹出提示框，并进行配置更新
  */
 checkUpdateDone() {
-    oldVersion := readIni(versionKey, currentVersion, "UserInfo")
+    try {
+        IniRead("InputTip.ini", "Installer", versionKey)
+        hasKey := 1
+    } catch {
+        hasKey := 0
+        IniDelete("InputTip.ini", "UserInfo")
+    }
+    oldVersion := readIni(versionKey, currentVersion, "Installer")
     flagFile := A_AppData "/.abgox-InputTip-update-version-done.txt"
     flagFile2 := A_ScriptDir "/InputTipSymbol/default/abgox-InputTip-update-version-done.txt"
-    if (VerCompare(currentVersion, oldVersion) > 0 || FileExist(flagFile) || FileExist(flagFile2)) {
+    if (VerCompare(currentVersion, oldVersion) > 0 || FileExist(flagFile) || FileExist(flagFile2) || !hasKey) {
 
         writeIni("init", 1, "Installer")
 
@@ -721,7 +723,7 @@ checkUpdateDone() {
                     FileDelete(v)
                 }
             }
-            writeIni(versionKey, currentVersion, "UserInfo")
+            writeIni(versionKey, currentVersion, "Installer")
             writeIni("clickUpdate", 0)
         }
 

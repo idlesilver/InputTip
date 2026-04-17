@@ -186,6 +186,7 @@ if (A_IsCompiled) {
         "menu/bw-list.ahk",
         "menu/check-update.ahk",
         "menu/cursor-mode.ahk",
+        "menu/ignore-hotkey.ahk",
         "menu/input-method.ahk",
         "menu/other-config.ahk",
         "menu/scheme-cursor.ahk",
@@ -350,10 +351,12 @@ ensureFile(urlPath, filePath) {
 checkIni() {
     try {
         IniRead("InputTip.ini", "Installer", "init")
+        checkUpdateDone()
     } catch {
         gc.init := 1
 
         writeIni("init", 1, "Installer")
+        writeIni(versionKey, currentVersion, "Installer")
 
         fz := "s14"
         createGui(confirmGui).Show()
@@ -373,36 +376,9 @@ checkIni() {
             g.AddButton("xs cRed w" bw, "【是】").OnEvent("Click", e_yes)
             e_yes(*) {
                 g.Destroy()
-                createGui(yesGui).Show()
-                yesGui(info) {
-                    g := Gui()
-                    g.SetFont(fz, "Microsoft YaHei")
-                    g.AddText(, "你真的确定要使用【鼠标方案】吗？")
-                    g.AddText("cRed", "如果误点了【是】，恢复鼠标样式需要以下步骤: `n  1. 点击【托盘菜单】中的【状态提示 - 鼠标方案】`n  2. 将【加载鼠标样式】更改为【否】")
-                    g.AddLink(, '详情参考【鼠标方案】:  <a href="https://inputtip.abgox.com/v2/#鼠标方案">官网</a>   <a href="https://github.com/abgox/InputTip#鼠标方案">Github</a>   <a href="https://gitee.com/abgox/InputTip#鼠标方案">Gitee</a>')
-
-                    if (info.i) {
-                        return g
-                    }
-                    w := info.w
-                    bw := w - g.MarginX * 2
-
-                    g.AddButton("xs cRed w" bw, "【是】").OnEvent("Click", e_yes)
-                    e_yes(*) {
-                        g.Destroy()
-                        writeIni("changeCursor", 1)
-                        global changeCursor := 1
-                        showSymbol()
-                    }
-                    g.AddButton("w" bw, "【否】").OnEvent("Click", e_no)
-                    e_no(*) {
-                        g.Destroy()
-                        writeIni("changeCursor", 0)
-                        global changeCursor := 0
-                        showSymbol()
-                    }
-                    return g
-                }
+                writeIni("changeCursor", 1)
+                global changeCursor := 1
+                showSymbol()
             }
             _ := g.AddButton("w" bw, "【否】")
             _.OnEvent("Click", e_no)
